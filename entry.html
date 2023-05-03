@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        input {
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="username"  value="请输入用户名a"/>
+    <button id="enter">进入聊天室</button>
+    <script>
+        var text = document.querySelector('input');
+        text.onfocus = function() {
+                if (this.value === '请输入用户名a') {
+                    this.value = '';
+                }
+                this.style.color = '#333';
+            }
+        text.onblur = function() {
+            if (this.value === '') {
+                this.value = '请输入用户名a';
+            }
+            this.style.color = '#999';
+        }
+        ;((doc,storage,location) => {
+            const oUsername = doc.querySelector('#username');
+            const oEnterBtn = doc.querySelector('#enter');
+
+            const init = () => {
+                bindEvent(); 
+            }
+
+            function bindEvent(){
+                oEnterBtn.addEventListener('click',handleEnterBtnClick,false);
+            }
+            function handleEnterBtnClick(){
+                const username = oUsername.value.trim();
+                console.log(username);
+                if(username.length < 6){
+                    alert('用户名不能小于6位');
+                    return;
+                }
+                storage.setItem('username',username);
+                location.href = 'entry2.html';
+            }
+            init();
+        })(document,localStorage,location);
+    </script>
+</body>
+</html>

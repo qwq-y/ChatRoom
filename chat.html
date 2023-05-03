@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat-Room</title>
+    <style type="text/css">
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+ 
+/* 居中对齐 */
+    html,body{
+        height: 100%;
+    }
+    body{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+ 
+/* 设置外观 */
+    .contentBox{
+        width: 40%;
+        min-width: 500px;
+        height: 65%;
+        min-height: 400px;
+        background-color: rgb(236, 234, 234);
+        border: 1px solid black;
+        display: flex;
+        flex-direction: column;
+        align-items:center;
+    }
+    #showBox{
+        overflow: auto;
+        width: 95%;
+        height: 80%;
+        border: 1px solid black;
+        margin: 2.5%;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #aInput,#bInput{
+        margin-bottom: 5px;
+    }
+    #buttonBox{
+        font-size: 16px;
+    }
+    input[type=text]{
+        height: 36px;
+        width: 200px;
+    }
+    input[type=button]{
+        height: 36px;
+        width: 100px;
+    }
+ 
+/* 设置消息的样式 */
+#showBox p{
+    display:inline-block;
+    background:#d14614;
+    border-radius:10px;
+    color:#fff;
+    padding:5px 10px;
+    margin: 5px 10px;
+}
+#showBox span p{
+    display:inline-block;
+    background:#a022cb;
+    border-radius:10px;
+    color:#fff;
+    margin: 5px 10px;
+}
+ 
+/* 改变B发送的消息的对齐方式 */
+#showBox span{
+    align-self: flex-end;   
+}
+ 
+    </style>
+</head>
+<body>
+    <div class="contentBox">
+        <div id="showBox">
+ 
+        </div>
+        <div id="buttonBox">
+            <div id="aInput">
+                userA:<input type="text" id="aTalkWord">
+                <input type="button" id="aButton" value="Send">
+            </div>
+            <div id="bInput">
+                userB:<input type="text" id="bTalkWord">
+                <input type="button" id="bButton" value="Send">
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    
+//获取标签
+let ShowBox=document.getElementById("showBox");//getElementsByClassName("")[0];
+let ATalkWord=document.getElementById("aTalkWord");
+let BTalkWord=document.getElementById("bTalkWord");
+let Abutton=document.getElementById("aButton");
+let Bbutton=document.getElementById("bButton");
+ 
+//绑定事件
+Abutton.onclick=function(){
+    let Atalk = "";//定义空值
+    if(ATalkWord.value==""){   //判断消息是否为空
+        alert("消息不能为空");
+    }else{
+        Atalk="<p> userA: "+ ATalkWord.value +"</P>";//获取信息
+            ATalkWord.value = '';
+    }
+    ShowBox.innerHTML=ShowBox.innerHTML+Atalk;//添加信息
+}
+Bbutton.onclick=function(){
+    if(BTalkWord.value==""){
+        alert("消息不能为空");
+    }else{
+        ShowBox.innerHTML=ShowBox.innerHTML+"<span><p> userB: "+ BTalkWord.value +"</P></span>";//第二种方法：直接写入HTML里面
+            BTalkWord.value = '';
+    }
+}
+</script>
+</html>
