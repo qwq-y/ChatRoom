@@ -9,12 +9,12 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "user_")
-public class User {
+@Table(name = "participants")
+public class Participants {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private Long account;
-  private String name;
-  private String password;
+  private Long roomNumber;
+  private Long userAccount;
+  private String state;
 }

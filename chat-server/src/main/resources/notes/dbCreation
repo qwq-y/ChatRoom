@@ -1,4 +1,6 @@
 drop table user_ cascade;
+drop table chat_room;
+drop table participants;
 
 create table user_
 (
@@ -8,5 +10,24 @@ create table user_
     password varchar
 );
 
+create table chat_room
+(
+    id             bigserial primary key,
+    number         bigint unique,
+    key            varchar,
+    state          varchar,
+    leader_account bigint references user_ (account)
+);
+
+create table participants
+(
+    id           bigserial primary key,
+    room_number  bigint references chat_room (number),
+    user_account bigint references user_ (account),
+    state        varchar
+);
+
 insert into user_ (account, name, password)
 values (11111111, 'Alice', 11111111);
+insert into user_ (account, name, password)
+values (12345678, 'Bob', 12345678);

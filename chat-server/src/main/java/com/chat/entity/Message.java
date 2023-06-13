@@ -1,5 +1,6 @@
 package com.chat.entity;
 
+import java.util.List;
 import lombok.Data;
 
 /**
@@ -10,14 +11,11 @@ import lombok.Data;
 @Data
 public class Message {
 
-    private String name;
     private String time;
-    private String msg;
-    private String to;
-    private String rsapk;
-    private String dsapk;
+    private Long sender;
+    private List<Long> receiver;
+    private String body;
+    private MsgType type;
     private String sign;
-    private String type;
-    private String key;
-    private String sendto;
+
 }
