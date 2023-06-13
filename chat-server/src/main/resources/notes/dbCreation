@@ -1,0 +1,12 @@
+drop table user_ cascade;
+
+create table user_
+(
+    id       bigserial primary key,
+    account  bigint unique,
+    name     varchar unique,
+    password varchar
+);
+
+insert into user_ (account, name, password)
+values (11111111, 'Alice', 11111111);
