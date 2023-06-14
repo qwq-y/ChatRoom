@@ -5,7 +5,7 @@
       <el-form-item>
         <el-input
           type="text"
-          v-model="username"
+          v-model="userid"
           placeholder="用户账号"
           autocomplete="off"
         ></el-input>
@@ -42,16 +42,49 @@ export default {
   name: "LogIn",
   data: function () {
     return {
-      username: "",
+      userid: null,
       password: "",
     };
   },
   methods: {
     doLogin: function () {
-      let username = this.username;
+      let uid = this.userid;
       let password = this.password;
-      let url = "api/login";
+      let url = "/api/users/login";
+      // let params = new URLSearchParams();
+      // params.append("account", uid);
+      // params.append("password", password);
       //TODO
+      axios
+        .get(url, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          params: {
+            account: uid,
+            password: password,
+          },
+        })
+        .then((resp) => {
+          console.log("Post response: " + resp.data);
+          if (resp.data.name != null) {
+            ElMessageBox.alert("登陆成功", {
+              confirmButtonText: "OK",
+              type: "success",
+            });
+            sessionStorage.setItem("name", resp.data.name);
+            router.push("/chat");
+          } else {
+            ElMessageBox.alert("登陆失败", {
+              confirmButtonText: "OK",
+              type: "error",
+            });
+            console.log("注册失败");
+          }
+        })
+        .catch((err) => {
+          console.log("ERROR: " + err);
+        });
     },
     goRegister: function () {
       router.push("/register");
