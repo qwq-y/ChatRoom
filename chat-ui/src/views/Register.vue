@@ -62,11 +62,11 @@ export default {
       let uid = this.uid;
       let username = this.username;
       let password = this.password;
-      let url = "http://localhost:8888/users/register";
+      let url = "/api/users/register";
       //TODO
       let params = new URLSearchParams();
-      params.append("uid", uid);
-      params.append("username", username);
+      params.append("account", uid);
+      params.append("name", username);
       params.append("password", password);
       axios
         .post(url, params, {
@@ -75,7 +75,20 @@ export default {
           },
         })
         .then((resp) => {
-          console.log("Post response: " + resp);
+          console.log("Post response: " + resp.data);
+          if (resp.data.name != null) {
+            ElMessageBox.alert("注册成功", {
+              confirmButtonText: "OK",
+              type: "success",
+            });
+            router.push("/login");
+          } else {
+            ElMessageBox.alert("注册失败", {
+              confirmButtonText: "OK",
+              type: "error",
+            });
+            console.log("注册失败");
+          }
         })
         .catch((err) => {
           console.log("ERROR: " + err);
