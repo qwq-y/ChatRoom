@@ -17,11 +17,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@ServerEndpoint("/socket/{account}/{number}")
+@ServerEndpoint("/socket/{account}")
 public class  WebSocketServer {
 
-    @Autowired
-    private ChatRoomService chatRoomService;
+//    @Autowired
+//    private ChatRoomService chatRoomService;
     @Autowired
     private ParticipantsService participantsService;
     @Autowired
@@ -34,6 +34,9 @@ public class  WebSocketServer {
 
     // 发送消息到指定用户
     private void sendMessage(Message message) {
+        List<Long> all = participantsService.getAllUsersOnline();
+        message.setReceiver(all);
+
         String messageJSON = JSON.toJSONString(message);
         try {
             List<Long> receiver = message.getReceiver();
@@ -47,8 +50,9 @@ public class  WebSocketServer {
     }
 
     // 提醒领导人更新密钥
-    private void noticeLeader(Long roomNumber) {
-        Long leader = chatRoomService.getLeaderByNumber(roomNumber);
+    private void noticeLeader() {
+//        Long leader = chatRoomService.getLeaderByNumber(roomNumber);
+        Long leader = getRandomLeader();
         List<Long> receiver = new ArrayList<>();
         receiver.add(leader);
 
@@ -60,11 +64,11 @@ public class  WebSocketServer {
     }
 
     // 给大家伙更新用户列表
-    private void updateUser(Long roomNumber) {
-        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
+    private void updateUser() {
+//        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
 
         Message message = new Message();
-        message.setReceiver(receiver);
+//        message.setReceiver(receiver);
         message.setType("USER");
         message.setBody(convertMapToString(userMap));
 
@@ -72,11 +76,11 @@ public class  WebSocketServer {
     }
 
     // 告诉大家伙更新加密公钥
-    private void updateRSAPk(Long roomNumber) {
-        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
+    private void updateRSAPk() {
+//        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
 
         Message message = new Message();
-        message.setReceiver(receiver);
+//        message.setReceiver(receiver);
         message.setType("RSA");
         message.setBody(convertMapToString(RSAPKMap));
 
@@ -84,11 +88,11 @@ public class  WebSocketServer {
     }
 
     // 告诉大家伙更新签名公钥
-    private void updateDSAPk(Long roomNumber) {
-        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
+    private void updateDSAPk() {
+//        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
 
         Message message = new Message();
-        message.setReceiver(receiver);
+//        message.setReceiver(receiver);
         message.setType("DSA");
         message.setBody(convertMapToString(DSAPKMap));
 
@@ -99,20 +103,34 @@ public class  WebSocketServer {
     private void storeRSAPk(Message message) {
         RSAPKMap.put(message.getSender(), message.getBody());
         Long senderAccount = message.getSender();
-        Long roomNumber = participantsService.getRoomNumberOfUser(senderAccount);
-        updateRSAPk(roomNumber);
-        updateDSAPk(roomNumber);
-        updateUser(roomNumber);
+//        Long roomNumber = participantsService.getRoomNumberOfUser(senderAccount);
+        updateRSAPk();
+        updateDSAPk();
+        updateUser();
     }
 
     // 服务器储存签名公钥，提醒用户更新
     private void storeDSAPk(Message message) {
         DSAPKMap.put(message.getSender(), message.getBody());
         Long senderAccount = message.getSender();
-        Long roomNumber = participantsService.getRoomNumberOfUser(senderAccount);
-        updateRSAPk(roomNumber);
-        updateDSAPk(roomNumber);
-        updateUser(roomNumber);
+//        Long roomNumber = participantsService.getRoomNumberOfUser(senderAccount);
+        updateRSAPk();
+        updateDSAPk();
+        updateUser();
+    }
+
+    // 从用户列表选则一个领导人
+    private Long getRandomLeader() {
+        int size = userMap.size();
+        int item = (int) (Math.random() * size);
+        int i = 0;
+        for (Long account : userMap.keySet()) {
+            if (i == item) {
+                return account;
+            }
+            i++;
+        }
+        return null;
     }
 
     // 把map转换为String
@@ -130,39 +148,41 @@ public class  WebSocketServer {
     @OnOpen
     public void onOpen(
         Session session,
-        @PathParam("account") Long userAccount,
-        @PathParam("number") Long roomNumber
+        @PathParam("account") Long userAccount
+//        @PathParam("number") Long roomNumber
         ) {
         boolean isExist = sessionMap.containsKey(userAccount);
         if (!isExist) {
-            ChatRoom chatRoom = chatRoomService.getChatRoom(roomNumber);
-            if (chatRoom != null) {
+//            ChatRoom chatRoom = chatRoomService.getChatRoom(roomNumber);
+//            if (chatRoom != null) {
                 System.out.println(userAccount + "加入了聊天室");
+                participantsService.enterRoom(userAccount);
                 sessionMap.put(userAccount, session);
                 String userName = userService.getUserNameByAccount(userAccount);
                 userMap.put(userAccount, userName);
-                noticeLeader(roomNumber);
-            }
+                noticeLeader();
+//            }
         }
     }
 
     // websocket断开事件
     @OnClose
     public void onClose(
-        @PathParam("account") Long userAccount,
-        @PathParam("number") Long roomNumber
+        @PathParam("account") Long userAccount
+//        @PathParam("number") Long roomNumber
     ) {
         if (userAccount != null) {
             System.out.println(userAccount + "退出了聊天室");
+            participantsService.leaveRoom(userAccount);
             sessionMap.remove(userAccount);
             RSAPKMap.remove(userAccount);
             DSAPKMap.remove(userAccount);
             String userName = userService.getUserNameByAccount(userAccount);
             userMap.remove(userAccount, userName);
-            noticeLeader(roomNumber);
-            updateRSAPk(roomNumber);
-            updateDSAPk(roomNumber);
-            updateUser(roomNumber);
+            noticeLeader();
+            updateRSAPk();
+            updateDSAPk();
+            updateUser();
         }
     }
 
@@ -171,6 +191,8 @@ public class  WebSocketServer {
     public void onMessage(String messageJason) {
         Message message = JSON.parseObject(messageJason, Message.class);
         if (message.getType().equals("CHAT")) {
+            sendMessage(message);
+        } else if (message.getType().equals("KEY")) {
             sendMessage(message);
         } else if (message.getType().equals("RSA")) {
             storeRSAPk(message);

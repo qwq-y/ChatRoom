@@ -6,6 +6,7 @@ import com.chat.service.ParticipantsService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,51 +26,51 @@ public class ChatRoomController {
     this.participantsService = participantsService;
   }
 
-  // 预定会议室
-  @PostMapping("/reserve")
-  public ChatRoom reserveMeetingRoom(
-      @RequestParam Long number,
-      @RequestParam String key,
-      @RequestParam Long leaderAccount) {
-    ChatRoom chatRoom = chatRoomService.creatChatRoom(number, key, leaderAccount);
-    return chatRoom;
-  }
+//  // 预定会议室
+//  @PostMapping("/reserve")
+//  public ChatRoom reserveMeetingRoom(
+//      @RequestParam Long number,
+//      @RequestParam String key,
+//      @RequestParam Long leaderAccount) {
+//    ChatRoom chatRoom = chatRoomService.creatChatRoom(number, key, leaderAccount);
+//    return chatRoom;
+//  }
 
   // 进入会议室
-  @GetMapping("/enter")
-  public ChatRoom enterChatRoom(
-      @RequestParam Long number,
-      @RequestParam String key,
+  @PostMapping("/enter")
+  public ResponseEntity<String> enterChatRoom(
+//      @RequestParam Long number,
+//      @RequestParam String key,
       @RequestParam Long userAccount
   ) {
-    ChatRoom chatRoom = chatRoomService.verifyChatRoom(number, key);
-    if (chatRoom != null) {
-      participantsService.enterRoom(userAccount, number);
-    }
-    return chatRoom;
+//    ChatRoom chatRoom = chatRoomService.verifyChatRoom(number, key);
+//    if (chatRoom != null) {
+      return participantsService.enterRoom(userAccount);
+//    }
+//    return chatRoom;
   }
 
   // 离开会议室
-  @GetMapping("/leave")
+  @DeleteMapping("/leave")
   public ResponseEntity<String> leaveChatRoom(
-      @RequestParam Long number,
+//      @RequestParam Long number,
       @RequestParam Long userAccount
   ) {
-    return participantsService.leaveRoom(userAccount, number);
+    return participantsService.leaveRoom(userAccount);
   }
 
-  // 获取会议室里的用户列表
-  @GetMapping("/inRoom")
-  public List<Long> getUserAccountInRoom(
-      @RequestParam Long roomNumber
-  ) {
-    return participantsService.getUserAccountInRoom(roomNumber);
-  }
-
-  // 获取用户所在会议室
-  @GetMapping("/ofUser")
-  public Long getRoomNumberOfUser(@RequestParam Long userAccount) {
-    return participantsService.getRoomNumberOfUser(userAccount);
-  }
+//  // 获取会议室里的用户列表
+//  @GetMapping("/inRoom")
+//  public List<Long> getUserAccountInRoom(
+//      @RequestParam Long roomNumber
+//  ) {
+//    return participantsService.getUserAccountInRoom(roomNumber);
+//  }
+//
+//  // 获取用户所在会议室
+//  @GetMapping("/ofUser")
+//  public Long getRoomNumberOfUser(@RequestParam Long userAccount) {
+//    return participantsService.getRoomNumberOfUser(userAccount);
+//  }
 
 }
