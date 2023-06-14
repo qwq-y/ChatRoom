@@ -34,9 +34,6 @@ public class  WebSocketServer {
 
     // 发送消息到指定用户
     private void sendMessage(Message message) {
-        List<Long> all = participantsService.getAllUsersOnline();
-        message.setReceiver(all);
-
         String messageJSON = JSON.toJSONString(message);
         try {
             List<Long> receiver = message.getReceiver();
@@ -69,6 +66,8 @@ public class  WebSocketServer {
 
         Message message = new Message();
 //        message.setReceiver(receiver);
+        List<Long> all = participantsService.getAllUsersOnline();
+        message.setReceiver(all);
         message.setType("USER");
         message.setBody(convertMapToString(userMap));
 
@@ -81,6 +80,8 @@ public class  WebSocketServer {
 
         Message message = new Message();
 //        message.setReceiver(receiver);
+        List<Long> all = participantsService.getAllUsersOnline();
+        message.setReceiver(all);
         message.setType("RSA");
         message.setBody(convertMapToString(RSAPKMap));
 
@@ -93,6 +94,8 @@ public class  WebSocketServer {
 
         Message message = new Message();
 //        message.setReceiver(receiver);
+        List<Long> all = participantsService.getAllUsersOnline();
+        message.setReceiver(all);
         message.setType("DSA");
         message.setBody(convertMapToString(DSAPKMap));
 
