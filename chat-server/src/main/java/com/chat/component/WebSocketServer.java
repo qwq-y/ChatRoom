@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.chat.entity.*;
 import com.chat.service.ChatRoomService;
 import com.chat.service.ParticipantsService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,20 +50,31 @@ public class  WebSocketServer {
 
         Message message = new Message();
         message.setReceiver(receiver);
-        message.setType(MsgType.UPDATE);
-        message.setBody("noticeLeader");
+        message.setType(MsgType.REMIND);
 
         sendMessage(message);
     }
 
-    // 告诉大家伙更新公钥
-    private void updatePk(Long roomNumber) {
+    // 告诉大家伙更新加密公钥
+    private void updateRSAPk(Long roomNumber) {
         List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
 
         Message message = new Message();
         message.setReceiver(receiver);
-        message.setType(MsgType.UPDATE);
-        message.setBody("updatePk");
+        message.setType(MsgType.RSA);
+        message.setBody(convertMapToString(RSAPKMap));
+
+        sendMessage(message);
+    }
+
+    // 告诉大家伙更新签名公钥
+    private void updateDSAPk(Long roomNumber) {
+        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
+
+        Message message = new Message();
+        message.setReceiver(receiver);
+        message.setType(MsgType.DSA);
+        message.setBody(convertMapToString(DSAPKMap));
 
         sendMessage(message);
     }
@@ -74,6 +87,17 @@ public class  WebSocketServer {
     // 服务器储存签名公钥
     private void storeDSAPk(Message message) {
         DSAPKMap.put(message.getSender(), message.getBody());
+    }
+
+    // 把map转换为String
+    private String convertMapToString (Map map) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // websocket接入事件
@@ -90,7 +114,8 @@ public class  WebSocketServer {
                 System.out.println(userAccount + "加入了聊天室");
                 sessionMap.put(userAccount, session);
                 noticeLeader(roomNumber);
-                updatePk(roomNumber);
+                updateRSAPk(roomNumber);
+                updateDSAPk(roomNumber);
             }
         }
     }
@@ -107,7 +132,8 @@ public class  WebSocketServer {
             RSAPKMap.remove(userAccount);
             DSAPKMap.remove(userAccount);
             noticeLeader(roomNumber);
-            updatePk(roomNumber);
+            updateRSAPk(roomNumber);
+            updateDSAPk(roomNumber);
         }
     }
 
