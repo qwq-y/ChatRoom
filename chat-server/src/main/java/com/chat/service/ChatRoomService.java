@@ -2,6 +2,7 @@ package com.chat.service;
 
 import com.chat.entity.ChatRoom;
 import com.chat.repository.ChatRoomRepository;
+import javax.print.DocFlavor.READER;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,8 @@ public class ChatRoomService {
     this.chatRoomRepository = chatRoomRepository;
   }
 
-  public ChatRoom findChatRoom(Long number, String key) {
+  // 根据会议号和密码进入之前预定的会议室
+  public ChatRoom verifyChatRoom(Long number, String key) {
     ChatRoom chatRoom = chatRoomRepository.findByNumber(number);
     if (chatRoom != null) {
       if (key.equals(chatRoom.getKey())) {
@@ -25,6 +27,17 @@ public class ChatRoomService {
     return null;
   }
 
+  // 根据会议号获取会议室
+  public ChatRoom getChatRoom(Long number) {
+    return chatRoomRepository.findByNumber(number);
+  }
+
+  // 预定会议室
+  public ChatRoom creatChatRoom(Long number, String key, Long leaderAccount) {
+    return chatRoomRepository.createChatRoomByNumberAndKeyAndLeaderAccount(number, key, leaderAccount);
+  }
+
+  // 获取会议室领导人
   public Long getLeaderByNumber(Long number) {
     return chatRoomRepository.findLeaderAccountByNumber(number);
   }

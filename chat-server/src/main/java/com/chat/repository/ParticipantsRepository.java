@@ -12,4 +12,15 @@ public interface ParticipantsRepository extends JpaRepository<Participants, Long
 
   @Query(value = "select * from participants where room_number = :number", nativeQuery = true)
   List<Participants> findByRoomNumber(@Param("number") Long roomNumber);
+
+  @Query(value = "insert into participants (room_number, user_account) "
+      + "values (:number, :account)", nativeQuery = true)
+  void insertParticipants(
+      @Param("account") Long userAccount,
+      @Param("number") Long roomNumber
+  );
+
+  void deleteParticipantsByUserAccountAndRoomNumber(Long userAccount, Long roomNumber);
+
+
 }

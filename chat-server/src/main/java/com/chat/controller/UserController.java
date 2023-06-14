@@ -20,6 +20,7 @@ public class UserController {
     this.userService = userService;
   }
 
+  // 注册
   @PostMapping("/register")
   public User register(
       @RequestParam Long account,
@@ -29,6 +30,7 @@ public class UserController {
     return userService.register(account, name, password);
   }
 
+  // 登录
   @GetMapping("/login")
   public User login(
       @RequestParam Long account,

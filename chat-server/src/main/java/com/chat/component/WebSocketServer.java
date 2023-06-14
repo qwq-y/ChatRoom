@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@ServerEndpoint("/socket/{account}/{number}/{key}")
+@ServerEndpoint("/socket/{account}/{number}")
 public class  WebSocketServer {
 
     @Autowired
@@ -25,7 +25,6 @@ public class  WebSocketServer {
     public static final Map<Long, Session> sessionMap = new ConcurrentHashMap<>();   // 所有的用户会话 <userAccount, session>
     public static final Map<Long, String> RSAPKMap = new ConcurrentHashMap<>();   // 加密公钥
     public static final Map<Long, String> DSAPKMap = new ConcurrentHashMap<>();   // 签名公钥
-    public static final Map<Long, ChatRoom> roomMap = new ConcurrentHashMap<>();   // 用户属于哪个聊天室
 
     // 发送消息到指定用户
     private void sendMessage(Message message) {
@@ -67,13 +66,14 @@ public class  WebSocketServer {
         sendMessage(message);
     }
 
-    // 服务器储存公钥
-    private void storePk(Message message) {
-        String[] pkArr = message.getBody().split("/");
-        String rsa = pkArr[0];
-        String dsa = pkArr[1];
-        RSAPKMap.put(message.getSender(), rsa);
-        DSAPKMap.put(message.getSender(), dsa);
+    // 服务器储存加密公钥
+    private void storeRSAPk(Message message) {
+        RSAPKMap.put(message.getSender(), message.getBody());
+    }
+
+    // 服务器储存签名公钥
+    private void storeDSAPk(Message message) {
+        DSAPKMap.put(message.getSender(), message.getBody());
     }
 
     // websocket接入事件
@@ -81,20 +81,14 @@ public class  WebSocketServer {
     public void onOpen(
         Session session,
         @PathParam("account") Long userAccount,
-        @PathParam("number") Long roomNumber,
-        @PathParam("key") String roomKey
+        @PathParam("number") Long roomNumber
         ) {
-        // 搜索名称是否存在
         boolean isExist = sessionMap.containsKey(userAccount);
         if (!isExist) {
-            // 判断是否为合法聊天室
-            ChatRoom chatRoom = chatRoomService.findChatRoom(roomNumber, roomKey);
+            ChatRoom chatRoom = chatRoomService.getChatRoom(roomNumber);
             if (chatRoom != null) {
                 System.out.println(userAccount + "加入了聊天室");
-                // 更新map
                 sessionMap.put(userAccount, session);
-                roomMap.put(userAccount, chatRoom);
-
                 noticeLeader(roomNumber);
                 updatePk(roomNumber);
             }
@@ -110,10 +104,8 @@ public class  WebSocketServer {
         if (userAccount != null) {
             System.out.println(userAccount + "退出了聊天室");
             sessionMap.remove(userAccount);
-            roomMap.remove(userAccount);
             RSAPKMap.remove(userAccount);
             DSAPKMap.remove(userAccount);
-
             noticeLeader(roomNumber);
             updatePk(roomNumber);
         }
@@ -127,8 +119,11 @@ public class  WebSocketServer {
             case CHAT:    // 转发聊天到指定接收者
                 sendMessage(message);
                 break;
-            case UPDATE:   // 收到新加入者的两个公钥
-                storePk(message);
+            case RSA:   // 收到新加入者的加密公钥
+                storeRSAPk(message);
+                break;
+            case DSA:   // 收到新加入者的签名公钥
+                storeDSAPk(message);
                 break;
             default:
                 System.out.println("Invalid message type");

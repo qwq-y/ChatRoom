@@ -2,5 +2,5 @@ package com.chat.entity;
 
 public enum MsgType {
 
-  CHAT, UPDATE;
+  CHAT, UPDATE, RSA, DSA;
 }

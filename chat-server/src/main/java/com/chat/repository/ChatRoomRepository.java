@@ -13,4 +13,11 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
   @Query(value = "select leader_account from chat_room where number = :number", nativeQuery = true)
   Long findLeaderAccountByNumber(@Param("number") Long number);
+
+  @Query(value = "insert into chat_room (number, key, leader_account) "
+      + "values (:number , :key, :account)", nativeQuery = true)
+  ChatRoom createChatRoomByNumberAndKeyAndLeaderAccount(
+      @Param("number") Long number,
+      @Param("key") String key,
+      @Param("account") Long leaderAccount);
 }
