@@ -62,16 +62,24 @@ export default {
       let uid = this.uid;
       let username = this.username;
       let password = this.password;
-      let url = "api/register";
+      let url = "http://localhost:8888/users/register";
       //TODO
-      let param = {
-        uid: uid,
-        username: username,
-        password: password,
-      };
-      axios.post(url, param).then((resp) => {
-        console.log("Post response: " + resp);
-      });
+      let params = new URLSearchParams();
+      params.append("uid", uid);
+      params.append("username", username);
+      params.append("password", password);
+      axios
+        .post(url, params, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        })
+        .then((resp) => {
+          console.log("Post response: " + resp);
+        })
+        .catch((err) => {
+          console.log("ERROR: " + err);
+        });
     },
     goLogin: function () {
       router.push("/login");
