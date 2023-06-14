@@ -31,3 +31,16 @@ insert into user_ (account, name, password)
 values (11111111, 'Alice', 11111111);
 insert into user_ (account, name, password)
 values (12345678, 'Bob', 12345678);
+
+insert into chat_room (number, key, state, leader_account)
+values (000, 000, '已预定', 11111111);
+
+insert into participants (room_number, user_account, state)
+values (000, 11111111, '在线');
+insert into participants (room_number, user_account, state)
+values (000, 12345678, '在线');
+
+select * from participants where room_number = 000;
+select leader_account from chat_room where number = 000;
+
+select room_number from participants where user_account = 11111111;

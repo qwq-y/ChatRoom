@@ -22,5 +22,7 @@ public interface ParticipantsRepository extends JpaRepository<Participants, Long
 
   void deleteParticipantsByUserAccountAndRoomNumber(Long userAccount, Long roomNumber);
 
+  @Query(value = "select room_number from participants where user_account = :account", nativeQuery = true)
+  Long findRoomNumberByUserAccount(@Param("account") Long userAccount);
 
 }

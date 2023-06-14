@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.chat.entity.*;
 import com.chat.service.ChatRoomService;
 import com.chat.service.ParticipantsService;
+import com.chat.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +24,13 @@ public class  WebSocketServer {
     private ChatRoomService chatRoomService;
     @Autowired
     private ParticipantsService participantsService;
+    @Autowired
+    private UserService userService;
 
     public static final Map<Long, Session> sessionMap = new ConcurrentHashMap<>();   // 所有的用户会话 <userAccount, session>
     public static final Map<Long, String> RSAPKMap = new ConcurrentHashMap<>();   // 加密公钥
     public static final Map<Long, String> DSAPKMap = new ConcurrentHashMap<>();   // 签名公钥
+    public static final Map<Long, String> userMap = new ConcurrentHashMap<>();  // 用户的账号和密码
 
     // 发送消息到指定用户
     private void sendMessage(Message message) {
@@ -50,7 +54,19 @@ public class  WebSocketServer {
 
         Message message = new Message();
         message.setReceiver(receiver);
-        message.setType(MsgType.REMIND);
+        message.setType("REMIND");
+
+        sendMessage(message);
+    }
+
+    // 给大家伙更新用户列表
+    private void updateUser(Long roomNumber) {
+        List<Long> receiver = participantsService.getUserAccountInRoom(roomNumber);
+
+        Message message = new Message();
+        message.setReceiver(receiver);
+        message.setType("USER");
+        message.setBody(convertMapToString(userMap));
 
         sendMessage(message);
     }
@@ -61,7 +77,7 @@ public class  WebSocketServer {
 
         Message message = new Message();
         message.setReceiver(receiver);
-        message.setType(MsgType.RSA);
+        message.setType("RSA");
         message.setBody(convertMapToString(RSAPKMap));
 
         sendMessage(message);
@@ -73,20 +89,30 @@ public class  WebSocketServer {
 
         Message message = new Message();
         message.setReceiver(receiver);
-        message.setType(MsgType.DSA);
+        message.setType("DSA");
         message.setBody(convertMapToString(DSAPKMap));
 
         sendMessage(message);
     }
 
-    // 服务器储存加密公钥
+    // 服务器储存加密公钥，提醒用户更新
     private void storeRSAPk(Message message) {
         RSAPKMap.put(message.getSender(), message.getBody());
+        Long senderAccount = message.getSender();
+        Long roomNumber = participantsService.getRoomNumberOfUser(senderAccount);
+        updateRSAPk(roomNumber);
+        updateDSAPk(roomNumber);
+        updateUser(roomNumber);
     }
 
-    // 服务器储存签名公钥
+    // 服务器储存签名公钥，提醒用户更新
     private void storeDSAPk(Message message) {
         DSAPKMap.put(message.getSender(), message.getBody());
+        Long senderAccount = message.getSender();
+        Long roomNumber = participantsService.getRoomNumberOfUser(senderAccount);
+        updateRSAPk(roomNumber);
+        updateDSAPk(roomNumber);
+        updateUser(roomNumber);
     }
 
     // 把map转换为String
@@ -113,9 +139,9 @@ public class  WebSocketServer {
             if (chatRoom != null) {
                 System.out.println(userAccount + "加入了聊天室");
                 sessionMap.put(userAccount, session);
+                String userName = userService.getUserNameByAccount(userAccount);
+                userMap.put(userAccount, userName);
                 noticeLeader(roomNumber);
-                updateRSAPk(roomNumber);
-                updateDSAPk(roomNumber);
             }
         }
     }
@@ -131,9 +157,12 @@ public class  WebSocketServer {
             sessionMap.remove(userAccount);
             RSAPKMap.remove(userAccount);
             DSAPKMap.remove(userAccount);
+            String userName = userService.getUserNameByAccount(userAccount);
+            userMap.remove(userAccount, userName);
             noticeLeader(roomNumber);
             updateRSAPk(roomNumber);
             updateDSAPk(roomNumber);
+            updateUser(roomNumber);
         }
     }
 
@@ -141,18 +170,14 @@ public class  WebSocketServer {
     @OnMessage
     public void onMessage(String messageJason) {
         Message message = JSON.parseObject(messageJason, Message.class);
-        switch (message.getType()) {
-            case CHAT:    // 转发聊天到指定接收者
-                sendMessage(message);
-                break;
-            case RSA:   // 收到新加入者的加密公钥
-                storeRSAPk(message);
-                break;
-            case DSA:   // 收到新加入者的签名公钥
-                storeDSAPk(message);
-                break;
-            default:
-                System.out.println("Invalid message type");
+        if (message.getType().equals("CHAT")) {
+            sendMessage(message);
+        } else if (message.getType().equals("RSA")) {
+            storeRSAPk(message);
+        } else if (message.getType().equals("DSA")) {
+            storeDSAPk(message);
+        } else {
+            System.out.println("Invalid message type");
         }
     }
 

@@ -38,4 +38,9 @@ public class UserService {
     }
   }
 
+  public String getUserNameByAccount(Long account) {
+    User user = userRepository.findByAccount(account);
+    return user.getName();
+  }
+
 }

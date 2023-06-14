@@ -15,7 +15,7 @@ public class Message {
     private Long sender;
     private List<Long> receiver;
     private String body;
-    private MsgType type;
+    private String type;
     private String sign;
 
 }

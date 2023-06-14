@@ -66,4 +66,10 @@ public class ChatRoomController {
     return participantsService.getUserAccountInRoom(roomNumber);
   }
 
+  // 获取用户所在会议室
+  @GetMapping("/ofUser")
+  public Long getRoomNumberOfUser(@RequestParam Long userAccount) {
+    return participantsService.getRoomNumberOfUser(userAccount);
+  }
+
 }
