@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import NameView from "../views/NameView.vue";
 import ChatView from "../views/ChatView.vue";
+import LogIn from "@/views/LogIn.vue";
+import Register from "@/views/Register.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -18,6 +20,16 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       keepAlive: true,
     },
+  },
+  {
+    path: "/login",
+    name: "LogIn",
+    component: LogIn,
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: Register,
   },
 ];
 
