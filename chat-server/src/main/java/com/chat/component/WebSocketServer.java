@@ -30,7 +30,21 @@ public class  WebSocketServer {
     public static final Map<Long, Session> sessionMap = new ConcurrentHashMap<>();   // 所有的用户会话 <userAccount, session>
     public static final Map<Long, String> RSAPKMap = new ConcurrentHashMap<>();   // 加密公钥
     public static final Map<Long, String> DSAPKMap = new ConcurrentHashMap<>();   // 签名公钥
-    public static final Map<Long, String> userMap = new ConcurrentHashMap<>();  // 用户的账号和密码
+    public static final Map<Long, String> userMap = new ConcurrentHashMap<>();  // 用户的账号和用户名
+
+    // 把公钥表的key转换为用户名
+    private Map<String, String> convertMap(Map<Long, String> map) {
+        Map<String, String> updatedMap = new ConcurrentHashMap<>();
+        for (Map.Entry<Long, String> entry : map.entrySet()) {
+            Long key = entry.getKey();
+            String value = entry.getValue();
+            String newValue = userMap.get(key);
+            if (newValue != null) {
+                updatedMap.put(newValue, value);
+            }
+        }
+        return updatedMap;
+    }
 
     // 发送消息到指定用户
     private void sendMessage(Message message) {
@@ -69,7 +83,9 @@ public class  WebSocketServer {
         List<Long> all = participantsService.getAllUsersOnline();
         message.setReceiver(all);
         message.setType("USER");
-        message.setBody(convertMapToString(userMap));
+//        message.setBody(convertMapToString(userMap));
+        List<String> names = new ArrayList<>(userMap.values());
+        message.setBody(convertListToString(names));
 
         sendMessage(message);
     }
@@ -83,7 +99,7 @@ public class  WebSocketServer {
         List<Long> all = participantsService.getAllUsersOnline();
         message.setReceiver(all);
         message.setType("RSA");
-        message.setBody(convertMapToString(RSAPKMap));
+        message.setBody(convertMapToString(convertMap(RSAPKMap)));
 
         sendMessage(message);
     }
@@ -97,7 +113,7 @@ public class  WebSocketServer {
         List<Long> all = participantsService.getAllUsersOnline();
         message.setReceiver(all);
         message.setType("DSA");
-        message.setBody(convertMapToString(DSAPKMap));
+        message.setBody(convertMapToString(convertMap(DSAPKMap)));
 
         sendMessage(message);
     }
@@ -141,6 +157,17 @@ public class  WebSocketServer {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // 把list转为String
+    private String convertListToString(List<?> list) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(list);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
